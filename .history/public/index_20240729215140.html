@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <style>
+        #chatContainer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: calc(100% - 20px);
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Chat</h1>
+    <div id="chatContainer"></div>
+    <input type="text" id="messageInput" placeholder="Type your message..." autofocus>
+    <button id="sendButton">Send</button>
+    <input type="file" id="fileInput">
+    <button id="sendFileButton">Send File</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const fileInput = document.getElementById('fileInput');
+        const sendFileButton = document.getElementById('sendFileButton');
+
+        const username = prompt('Enter your username:');
+        const room = prompt('Enter the room you want to join:');
+        socket.emit('join', { username, room });
+
+        socket.on('user-joined', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.innerText = `${data.username} joined room ${data.room}`;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        socket.on('chat-message', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.innerText = `${data.username}: ${data.message}`;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        socket.on('file-message', (data) => {
+            const messageElement = document.createElement('div');
+            const fileLink = document.createElement('a');
+            fileLink.href = data.filePath;
+            fileLink.textContent = `${data.username} sent a file: ${data.filePath}`;
+            fileLink.target = '_blank';
+            messageElement.appendChild(fileLink);
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        socket.on('user-left', (username) => {
+            const messageElement = document.createElement('div');
+            messageElement.innerText = `${username} left the chat`;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message.trim()) {
+                socket.emit('chat-message', message);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && messageInput.value.trim()) {
+                sendButton.click();
+            }
+        });
+
+        sendFileButton.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    socket.emit('file-message', data.filePath);
+                    fileInput.value = '';  // Clear the file input
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
