@@ -16,73 +16,10 @@
             width: calc(100% - 20px);
             padding: 10px;
         }
-        <style>
-       
-            body {
-                font-family: 'Nunito', sans-serif;
-                background: #f3e5f5;
-                color: #4a148c;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                margin: 0;
-            }
-            h1 {
-                color: #880e4f;
-            }
-            .container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                background: #fce4ec;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                padding: 20px;
-                width: 350px;
-                text-align: center;
-            }
-            #chatContainer {
-                border: none;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                padding: 10px;
-                width: 100%;
-                height: 300px;
-                overflow-y: auto;
-                margin-bottom: 10px;
-            }
-            #messageInput, #fileInput {
-                width: 100%;
-                padding: 8px;
-                margin-bottom: 10px;
-                border-radius: 8px;
-                border: 1px solid #f8bbd0;
-            }
-            button {
-                background: #ec407a;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                border: none;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            button:hover {
-                background: #d81b60;
-            }
-            .messages div {
-                background: #f8bbd0;
-                padding: 5px 10px;
-                margin-bottom: 5px;
-                border-radius: 4px;
-                color: #4a148c;
-            }
-        </style>
     </style>
 </head>
 <body>
-    <h1></h1>
+    <h1>Real-Time Chat</h1>
     <div id="chatContainer"></div>
     <input type="text" id="messageInput" placeholder="Type your message..." autofocus>
     <button id="sendButton">Send</button>
@@ -94,8 +31,7 @@
         //getting the room from the url
         const urlParams = new URLSearchParams(window.location.search);
         const room = urlParams.get('room');
-        const username =urlParams.get('username');
-
+        
 
         const socket = io();
         const chatContainer = document.getElementById('chatContainer');
@@ -104,8 +40,8 @@
         const fileInput = document.getElementById('fileInput');
         const sendFileButton = document.getElementById('sendFileButton');
 
-        // username = prompt('Enter your username:');
-        //const room = prompt('Enter the room you want to join:');
+        const username = prompt('Enter your username:');
+        const room = prompt('Enter the room you want to join:');
         socket.emit('join', { username, room });
 
         socket.on('user-joined', (data) => {
